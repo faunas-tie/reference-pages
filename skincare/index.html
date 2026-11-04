@@ -70,6 +70,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 }
 .dayname { text-align: center; min-width: 0; font-family: var(--display); font-weight: 700; font-size: 19px; line-height: 1.15; }
 .dayname small { display: block; font-family: var(--body); font-size: 13px; font-weight: 700; color: var(--next); }
+.newday { background: var(--next-soft); color: var(--next); border-radius: 10px; padding: 6px 10px; font-size: 15px; font-weight: 700; text-align: center; }
 nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 nav::-webkit-scrollbar { display: none; }
 nav a {
@@ -167,6 +168,7 @@ footer { font-size: 14px; color: var(--muted); }
       <div class="dayname" aria-live="polite"><small id="day-rel">Today</small><span id="day-label">Thursday 5 November</span></div>
       <button type="button" id="next" aria-label="Next day">&rsaquo;</button>
     </div>
+    <p class="newday" id="newday" role="status" hidden></p>
     <nav aria-label="Sections">
       <a href="#morning">Morning</a>
       <a href="#night">Night</a>
@@ -180,7 +182,7 @@ footer { font-size: 14px; color: var(--muted); }
     <h2 id="today-title">Retinal nights: Monday and Thursday</h2>
     <p id="today-note">On all other nights, use Hydr8 in step 3.</p>
     <div class="week" id="week"></div>
-    <p class="small" id="week-legend">Filled days are retinal nights. Tap a day to look at it.</p>
+    <p class="small" id="week-legend">Filled days are retinal nights. Tap a day to look at it. A new day starts at 4am.</p>
   </section>
 
   <section id="morning">
@@ -411,6 +413,8 @@ footer { font-size: 14px; color: var(--muted); }
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var midnight = function (d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+  /* The routine day runs from 4am to 4am, so a late night still counts as the same day. */
+  var routineToday = function () { return midnight(new Date(Date.now() - 4 * 60 * 60 * 1000)); };
   var dayNum = function (d) { return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5; };
   var P2 = dayNum(new Date(2026, 11, 7)), P3 = dayNum(new Date(2026, 11, 21));
   var phase = function (d) { var n = dayNum(d); return n < P2 ? 1 : n < P3 ? 2 : 3; };
@@ -427,6 +431,8 @@ footer { font-size: 14px; color: var(--muted); }
 
   /* viewed is null while following today, so the page rolls over to a new day by itself. */
   var viewed = null;
+  var shownDay = dayNum(routineToday());
+  var noteTimer = null;
   var chipPhase = document.createElement('span');
   chipPhase.className = 'chip nowchip';
 
@@ -436,14 +442,33 @@ footer { font-size: 14px; color: var(--muted); }
     return gap > 0 ? 'This is in ' + gap + ' days' : 'This was ' + (-gap) + ' days ago';
   };
 
+  var clearNote = function () {
+    if (noteTimer) { clearTimeout(noteTimer); noteTimer = null; }
+    if (!$('newday').hidden) { $('newday').hidden = true; measure(); }
+  };
+
   var setDay = function (d) {
-    var today = midnight(new Date());
+    var today = routineToday();
     viewed = dayNum(d) === dayNum(today) ? null : midnight(d);
+    clearNote();
+    render();
+  };
+
+  /* When the date changes, always go back to today and say so. */
+  var checkNewDay = function () {
+    var today = routineToday();
+    if (dayNum(today) === shownDay) { return; }
+    shownDay = dayNum(today);
+    viewed = null;
+    clearNote();
+    $('newday').textContent = 'New day: now showing ' + fullDate(today);
+    $('newday').hidden = false;
+    noteTimer = setTimeout(clearNote, 30000);
     render();
   };
 
   var render = function () {
-    var today = midnight(new Date());
+    var today = routineToday();
     var d = viewed || today;
     var preview = viewed !== null;
     var ret = isRetinal(d), p = phase(d);
@@ -495,13 +520,14 @@ footer { font-size: 14px; color: var(--muted); }
   };
 
   var measure = function () { document.documentElement.style.setProperty('--top', $('topbar').offsetHeight + 'px'); };
-  var shift = function (n) { var d = viewed || midnight(new Date()); setDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)); };
+  var shift = function (n) { var d = viewed || routineToday(); setDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)); };
 
   $('prev').addEventListener('click', function () { shift(-1); });
   $('next').addEventListener('click', function () { shift(1); });
-  $('back-today').addEventListener('click', function () { viewed = null; render(); });
-  document.addEventListener('visibilitychange', function () { if (!document.hidden) { render(); } });
-  window.addEventListener('pageshow', render);
+  $('back-today').addEventListener('click', function () { viewed = null; clearNote(); render(); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { checkNewDay(); } });
+  window.addEventListener('pageshow', checkNewDay);
+  setInterval(checkNewDay, 60000);
   window.addEventListener('resize', measure);
   render();
 })();
