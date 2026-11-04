@@ -19,6 +19,7 @@
   --tile: #ffffff; --am: #99570a; --am-soft: #fcefd8; --pm: #443aa3; --pm-soft: #e7e5fa;
   --next: #0a6b5f; --next-soft: #dcf2ee;
   --warn: #ffb020; --warn-ink: #2a1a00; --warn-soft: #fff1d2;
+  --water: #1c6a90; --water-soft: #dcecf5;
   --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
   --body: "Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif;
 }
@@ -26,13 +27,13 @@
   :root:not([data-theme="light"]) {
     --bg: #10181d; --surface: #19242b; --ink: #e9eff2; --muted: #a2b4bd; --line: #2d3b44;
     --am: #f3bc68; --am-soft: #3a2c14; --pm: #bab1ff; --pm-soft: #29254f;
-    --next: #74d8c9; --next-soft: #12382f; --warn-soft: #33270f; color-scheme: dark;
+    --next: #74d8c9; --next-soft: #12382f; --warn-soft: #33270f; --water: #93d0ec; --water-soft: #14303f; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #10181d; --surface: #19242b; --ink: #e9eff2; --muted: #a2b4bd; --line: #2d3b44;
   --am: #f3bc68; --am-soft: #3a2c14; --pm: #bab1ff; --pm-soft: #29254f;
-  --next: #74d8c9; --next-soft: #12382f; --warn-soft: #33270f; color-scheme: dark;
+  --next: #74d8c9; --next-soft: #12382f; --warn-soft: #33270f; --water: #93d0ec; --water-soft: #14303f; color-scheme: dark;
 }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
@@ -131,6 +132,14 @@ section { display: grid; gap: 12px; scroll-margin-top: calc(var(--top, 112px) + 
 .opt { display: grid; grid-template-columns: minmax(0, 1fr) 84px; gap: 10px; align-items: start; }
 .opt + .opt { border-top: 1px dashed var(--line); padding-top: 10px; }
 .opt .what { gap: 2px; }
+.shower {
+  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: center;
+  background: var(--water-soft); color: var(--water); border-radius: 12px; padding: 10px 12px; margin-block: 8px;
+}
+.shower svg { justify-self: center; }
+.shower div { min-width: 0; }
+.shower h3 { color: var(--water); }
+.shower p { font-size: 15px; color: var(--ink); line-height: 1.3; }
 .lead { grid-column: 2 / -1; font-family: var(--display); font-weight: 600; font-size: 18px; }
 .phases { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .phase { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 3px; }
@@ -257,7 +266,7 @@ footer { font-size: 14px; color: var(--muted); }
   <section id="night">
     <div class="band pm">
       <h2>Night</h2>
-      <p class="small">Only step 3 changes.</p>
+      <p class="small">Step 1 starts before your shower. Steps 2 to 4 come after it. Only step 3 changes.</p>
     </div>
     <ol class="steps">
       <li class="step">
@@ -265,12 +274,19 @@ footer { font-size: 14px; color: var(--muted); }
         <div class="what">
           <h3>Cleanse</h3>
           <p class="prod">Medik8 Lipid-Balance Cleansing Oil</p>
-          <p class="how">Massage onto dry skin, then rinse.</p>
+          <p class="how">Before your shower, massage onto dry skin. Rinse it off in the shower.</p>
         </div>
         <img class="tile" src="data:image/jpeg;base64,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" alt="Medik8 Lipid-Balance Cleansing Oil bottle">
         <div class="next">
           <img src="data:image/jpeg;base64,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" alt="CeraVe Foaming Cleanser bottle">
-          <div><span class="label">NEXT, WHEN THE OIL RUNS OUT</span><br>CeraVe Foaming Cleanser. Use on wet skin, then rinse.</div>
+          <div><span class="label">NEXT, WHEN THE OIL RUNS OUT</span><br>CeraVe Foaming Cleanser. Use in the shower on wet skin, then rinse.</div>
+        </div>
+      </li>
+      <li class="shower">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5c3.6 4.6 7 8.300 7 12a7 7 0 1 1-14 0c0-3.700 3.400-7.400 7-12z"/></svg>
+        <div>
+          <h3>Shower</h3>
+          <p>Then pat your face dry. Steps 2 to 4 come after this.</p>
         </div>
       </li>
       <li class="step">
